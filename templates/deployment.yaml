@@ -1,0 +1,50 @@
+{{- range .Values.microservices }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .labels }}
+  name: {{ .name }}-deploy
+spec:
+  minReadySeconds: {{ .minReadySeconds }}
+  replicas: {{ .replicas }}
+  selector:
+    matchLabels:
+      app: {{ .labels }}
+  template:
+    metadata:
+      labels:
+        app: {{ .labels }}
+    spec:
+      containers:
+      - image: {{ .image }}
+        name: {{ .name }}
+        {{- if .env }}
+        env:
+          {{- if .env.password }}
+          - name: {{ .env.password.name }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .env.password.secretKeyRef.name }}
+                key: {{ .env.password.secretKeyRef.key }}
+          {{- end }}
+          {{- if .env.db }}
+          - name: {{ .env.db.name }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ .env.db.secretKeyRef.name }}
+                key: {{ .env.db.secretKeyRef.key }}
+          {{- end }}
+        {{- end }}
+        {{- if .volumemounts }}
+        volumeMounts:
+          - name: {{ .volumes.name }}
+            mountPath: {{ .volumemounts.mountPath }}
+        {{- end }}
+      {{- if .volumes }}
+      volumes:
+      - name: {{ .volumes.name }}
+        emptyDir: {}
+       {{- end }}
+---
+{{- end }}

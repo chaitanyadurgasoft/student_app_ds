@@ -1,0 +1,32 @@
+microservices:
+  - name: mydb
+    image: postgres
+    port: 5432
+    replicas: 1
+    minReadySeconds: 3
+    type: ClusterIP
+    labels: database
+    env:
+      password:
+        name: POSTGRES_PASSWORD
+        secretKeyRef:
+          name: my-db
+          key: password
+      db:
+        name:  POSTGRES_DB
+        secretKeyRef:
+          name: my-db
+          key: db
+    volumes:
+      name: postgres-storage
+    volumemounts:
+      mountPath: /var/lib/postgresql/data
+
+  - name: studentapp
+    image: "chaitanyamanikumar/mydb:v1"
+    minReadySeconds: 60
+    port: 5000
+    replicas: 2
+    type: NodePort
+    labels: pythonapp
+
